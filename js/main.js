@@ -20,7 +20,7 @@ const showModalCart = () => {
 			modalCart.classList.add('show');
 			document.body.style.cssText = `overflow-y: hidden; padding-right: 18px;`;
 		}
-		if (target.matches('.overlay') || target.matches('.modal-close') || target.matches('.cart-buy')) {
+		if (target.matches('.overlay') || target.matches('.modal-close')) {
 			modalCart.classList.remove('show');
 			document.body.style.cssText = `overflow-y: visible; padding-right: 0;`;
 		}
