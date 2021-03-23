@@ -52,9 +52,11 @@ const scrollToAnchors = () => {
 					}
 					let progress = time - start;
 					let r = (t < 0 ? Math.max(w - progress / v, v + t) : Math.min(w + progress / v, w + t));
-					if (r < -1) {
+					if (r < -100) {
+						console.log(r);
 						return;
 					}
+					console.log(r);
 					window.scrollTo(0, r);
 
 					if (r !== w + t) {
