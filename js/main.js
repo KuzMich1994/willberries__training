@@ -40,11 +40,11 @@ const scrollToAnchors = () => {
 		item.addEventListener('click', e => {
 			e.preventDefault();
 			let target = e.target;
-			// console.log(target);
 			if (target.closest('[href*="#"]')) {
-				target = target.parentElement;
+				// target = target.parentElement;
+				target = target.closest('[href*="#"]');
 				console.log(target);
-				let w = window.pageYOffset;
+				let w = window.pageYOffset - 1;
 				let hash = target.href.replace(/[^#]*(.*)/, '$1');
 				let t = document.querySelector(hash).getBoundingClientRect().top;
 				let start = null;
@@ -62,7 +62,7 @@ const scrollToAnchors = () => {
 					} else {
 						location.hash = hash;
 					}
-					if (window.pageYOffset <= 0) {
+					if (window.pageYOffset === 1) {
 						animation = cancelAnimationFrame(animation);
 						console.log(1);
 					}
