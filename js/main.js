@@ -29,6 +29,8 @@ const showModalCart = () => {
 
 showModalCart();
 
+// scrollToAnchors
+
 const scrollToAnchors = () => {
 	const anchors = document.querySelectorAll('[href^="#"]');
 	let v = 0.3;
