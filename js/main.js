@@ -34,40 +34,36 @@ showModalCart();
 const scrollToAnchors = () => {
 	const anchors = document.querySelectorAll('[href^="#"]');
 	let v = 0.3;
-	console.log(window.pageYOffset);
 
 	anchors.forEach(item => {
 		item.addEventListener('click', e => {
 			e.preventDefault();
 			let target = e.target;
 			if (target.closest('[href*="#"]')) {
-				// target = target.parentElement;
 				target = target.closest('[href*="#"]');
 				console.log(target);
 				let w = window.pageYOffset - 1;
 				let hash = target.href.replace(/[^#]*(.*)/, '$1');
 				let t = document.querySelector(hash).getBoundingClientRect().top;
 				let start = null;
-				let animation;
-				const step = (time) => {
+				const step = time => {
 					if (start === null) {
 						start = time;
 					}
 					let progress = time - start;
 					let r = (t < 0 ? Math.max(w - progress / v, v + t) : Math.min(w + progress / v, w + t));
+					if (r < -1) {
+						return;
+					}
 					window.scrollTo(0, r);
 
 					if (r !== w + t) {
-						animation = requestAnimationFrame(step);
+						requestAnimationFrame(step);
 					} else {
 						location.hash = hash;
 					}
-					if (window.pageYOffset === 1) {
-						animation = cancelAnimationFrame(animation);
-						console.log(1);
-					}
 				};
-				animation = requestAnimationFrame(step);
+				requestAnimationFrame(step);
 			}
 
 		}, false);
