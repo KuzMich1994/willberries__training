@@ -32,7 +32,7 @@ showModalCart();
 const scrollToAnchors = () => {
 	const anchors = document.querySelectorAll('[href^="#"]');
 	let v = 0.3;
-	console.log(anchors);
+	console.log(window.pageYOffset);
 
 	anchors.forEach(item => {
 		item.addEventListener('click', e => {
@@ -46,6 +46,7 @@ const scrollToAnchors = () => {
 				let hash = target.href.replace(/[^#]*(.*)/, '$1');
 				let t = document.querySelector(hash).getBoundingClientRect().top;
 				let start = null;
+				let animation;
 				const step = (time) => {
 					if (start === null) {
 						start = time;
@@ -55,12 +56,16 @@ const scrollToAnchors = () => {
 					window.scrollTo(0, r);
 
 					if (r !== w + t) {
-						requestAnimationFrame(step);
+						animation = requestAnimationFrame(step);
 					} else {
 						location.hash = hash;
 					}
+					if (window.pageYOffset <= 0) {
+						animation = cancelAnimationFrame(animation);
+						console.log(1);
+					}
 				};
-				requestAnimationFrame(step);
+				animation = requestAnimationFrame(step);
 			}
 
 		}, false);
