@@ -10,13 +10,14 @@ const mySwiper = new Swiper('.swiper-container', {
 
 // cart
 
-const showModalCart = () => {
+const showModalCart = foo => {
 	const modalCart = document.getElementById('modal-cart');
 
 	document.addEventListener('click', e => {
 		const target = e.target;
 
 		if (target.closest('.button-cart')) {
+			foo.initInOpenModal();
 			modalCart.classList.add('show');
 			document.body.classList.add('scroll-hidden');
 		}
@@ -27,7 +28,16 @@ const showModalCart = () => {
 	});
 };
 
-showModalCart();
+// getGoods
+
+const getGoods = async () => {
+		const result = await fetch('db/db.json');
+
+		if (!result.ok) {
+			throw new Error(`Error: ${result.status}`);
+		}
+		return await result.json();
+	};
 
 // scrollToAnchors
 
@@ -75,18 +85,8 @@ const scrollToAnchors = () => {
 scrollToAnchors();
 
 const showGoods = () => {
-	const more = document.querySelector('.more');
-	const navigation = document.querySelector('.navigation');
 	const longGoodsList = document.querySelector('.long-goods-list');
 
-	const getGoods = async () => {
-		const result = await fetch('db/db.json');
-
-		if (!result.ok) {
-			throw new Error(`Error: ${result.status}`);
-		}
-		return await result.json();
-	};
 
 	const createCard = objCard => {
 		const newCard = document.createElement('div');
@@ -118,12 +118,7 @@ const showGoods = () => {
 
 	const filterCards = (filed, value) => {
 		getGoods()
-			.then((data) => {
-				const filteredGoods = data.filter((good) => {
-					return good[filed] === value;
-				});
-				return filteredGoods;
-			})
+			.then(data => data.filter(good => good[filed] === value))
 			.then(renderCards);
 	};
 
@@ -157,5 +152,146 @@ const showGoods = () => {
 
 showGoods();
 
+// calcSum
+
+class CalcSum {
+	constructor(cartTableGoods, cartTableTotal) {
+		this.cartTableGoods = document.querySelector(cartTableGoods);
+		this.cartTableTotal = document.querySelector(cartTableTotal);
+		this.cartGoods = [];
+	}
+	renderCart() {
+		this.cartTableGoods.textContent = '';
+		this.cartGoods.forEach(({ id, name, price, count}) => {
+			const trGood = document.createElement('tr');
+			trGood.className = 'cart-item';
+			trGood.dataset.id = id;
+			
+			trGood.innerHTML = `
+				<td>${name}</td>
+					<td>${price}$</td>
+					<td><button class="cart-btn-minus">-</button></td>
+					<td class="count">${count}</td>
+					<td><button class="cart-btn-plus">+</button></td>
+					<td>${price * count}$</td>
+					<td><button class="cart-btn-delete">x</button></td>
+			`;
+
+			this.cartTableGoods.append(trGood);
+		});
+		
+		const total = this.cartGoods.reduce((sum, item) => {
+			return sum + (item.price * item.count);
+		}, 0);
+		this.cartTableTotal.textContent = `${total}$`;
+	}
+
+	addListenerTable() {
+		this.cartTableGoods.addEventListener('click', e => {
+			const target = e.target;
+
+			if (target.tagName === 'BUTTON') {
+				const id = target.closest('.cart-item').dataset.id;
+
+				if (target.matches('.cart-btn-delete')) {
+					this.deleteGood(id);
+				}
+				if (target.matches('.cart-btn-minus')) {
+					this.minusGood(id);
+				}
+				if (target.matches('.cart-btn-plus')) {
+					this.plusGood(id);
+				}
+			}
+		});
+	}
+
+	deleteGood(id) {
+		this.cartGoods = this.cartGoods.filter(item => id !== item.id);
+		this.renderCart();
+		this.updateCounter();
+	}
+	
+	minusGood(id) {
+		this.cartGoods.forEach(item => {
+			if (item.id === id) {
+				item.count--;
+				if (item.count < 1) {
+					this.deleteGood(item.id);
+				}
+			}
+		});
+		this.renderCart();
+		this.updateCounter();
+	}
+	
+	plusGood(id) {
+		this.cartGoods.forEach(item => {
+			if (item.id === id) {
+				item.count++;
+			}
+		});
+		this.renderCart();
+		this.updateCounter();
+	}
+	
+	addCartGoods(id) {
+		const goodItem = this.cartGoods.find(item => item.id === id);
+		if (goodItem) {
+			this.plusGood(id);
+		} else {
+			getGoods()
+				.then(data => data.find(item => item.id === id))
+				.then(({ id, name, price}) => {
+					this.cartGoods.push({
+						id,
+						name,
+						price,
+						count: 1
+					});
+					// this.renderCart();
+					this.updateCounter();
+				});
+		}
+	}
+
+	updateCounter() {
+		const cartCount = document.querySelector('.cart-count');
+		const counter = this.cartGoods.reduce((sum, item) => {
+			return sum + item.count;
+		}, 0);
+
+		cartCount.textContent = counter;
+		if (counter < 1) {
+			cartCount.textContent = '';
+		}
+	}
+
+	addListenerBody() {
+		document.body.addEventListener('click', e => {
+			const target = e.target;
+			
+			if (target.closest('.add-to-cart')) {
+				const id = target.closest('.add-to-cart').dataset.id;
+				this.addCartGoods(id);
+				this.updateCounter();
+			}
+		});
+	}
+	
+	init() {
+		this.addListenerBody();
+		this.addListenerTable();
+	}
+	initInOpenModal() {
+		this.renderCart();
+	}
+
+}
+
+const calcSum = new CalcSum('.cart-table__goods', '.card-table__total');
+
+showModalCart(calcSum);
+calcSum.init();
 
 
